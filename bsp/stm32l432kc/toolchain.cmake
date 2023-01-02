@@ -3,7 +3,7 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
 
-set(CPU_COMPILE_FLAGS "-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections  -Wl,-T${CMAKE_CURRENT_LIST_DIR}/cubeMX/STM32L432KCUx_FLASH.ld -specs=nosys.specs")
+set(CPU_COMPILE_FLAGS "-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -Wl,-T${CMAKE_CURRENT_LIST_DIR}/cubeMX/STM32L432KCUx_FLASH.ld -specs=nosys.specs -O1")
 
 set(CMAKE_ASM_COMPILER "arm-none-eabi-gcc" CACHE STRING "Assembler binary" FORCE)
 set(CMAKE_C_COMPILER "arm-none-eabi-gcc" CACHE STRING "C Compiler binary" FORCE)
