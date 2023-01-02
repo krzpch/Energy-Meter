@@ -48,12 +48,12 @@ int main() {
 
 	// initialize peripherals
 	// ina energy(INA219_I2C_ADDRESS6);
-	// display oled(U8G2_R2);
+	display oled(U8G2_R2);
 	
-  // oled.begin();
+  oled.begin();
 
-	// oled.setFont(u8g2_font_6x13_mf);
-	// oled.drawStr(0, 15, "TEST");
+	oled.setFont(u8g2_font_6x13_mf);
+	oled.drawStr(0, 15, "TEST");
 
     // osKernelInitialize();
     // sdTaskHandle = osThreadNew(sdTask, NULL, &sdTask_attributes);

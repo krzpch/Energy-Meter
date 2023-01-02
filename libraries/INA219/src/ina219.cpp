@@ -129,7 +129,7 @@ namespace energymeter
 
     void INA219::writeInaReg(uint8_t reg, uint16_t value)
     {
-        uint8_t buffer[2] = {(value >> 8), value & 0xff};
+        uint8_t buffer[2] = {(uint8_t)(value >> 8), (uint8_t)(value & 0x00ff)};
         writeReg(reg, buffer, 2);
     }
 }

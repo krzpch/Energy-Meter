@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-set(CMAKE_BUILD_TYPE Release)
+
 set(This energy_meter)
 
 project(${This} CXX C ASM)
