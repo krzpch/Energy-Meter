@@ -59,16 +59,16 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define VCP_TX_Pin GPIO_PIN_2
 #define VCP_TX_GPIO_Port GPIOA
-#define SD_CS_Pin GPIO_PIN_3
-#define SD_CS_GPIO_Port GPIOA
-#define OLED_RES_Pin GPIO_PIN_8
-#define OLED_RES_GPIO_Port GPIOA
-#define OLED_T_C_Pin GPIO_PIN_11
-#define OLED_T_C_GPIO_Port GPIOA
+#define DISP_CS_Pin GPIO_PIN_3
+#define DISP_CS_GPIO_Port GPIOA
+#define DISP_RST_Pin GPIO_PIN_4
+#define DISP_RST_GPIO_Port GPIOA
+#define DISP_DC_Pin GPIO_PIN_5
+#define DISP_DC_GPIO_Port GPIOA
+#define SD_CS_Pin GPIO_PIN_0
+#define SD_CS_GPIO_Port GPIOB
 #define VCP_RX_Pin GPIO_PIN_15
 #define VCP_RX_GPIO_Port GPIOA
-#define OLED_CS_Pin GPIO_PIN_4
-#define OLED_CS_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 #define SD_SPI_HANDLE hspi1
 /* USER CODE END Private defines */
