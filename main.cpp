@@ -11,24 +11,14 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "fatfs.h"
 
 // #include "meter_thread.hpp"
-#include "display_thread.hpp"
+// #include "display_thread.hpp"
+#include "csv_thread.hpp"
 
 extern "C" UART_HandleTypeDef huart2;
 
-
-
 #define DEBUG(_msg) (HAL_UART_Transmit(&huart2, (uint8_t*) _msg, strlen(_msg), 100))
-
-FATFS FatFs; 	//Fatfs handle
-FIL fil; 		//File handle
-FRESULT fres; //Result after operations
-BYTE readBuf[30];
-DWORD free_clusters, free_sectors, total_sectors;
-FATFS* getFreeFs;
-
 
 void myprintf(const char *fmt, ...) {
   static char buffer[256];
@@ -48,12 +38,33 @@ int main() {
 
 	// initialize peripherals
 	// ina energy(INA219_I2C_ADDRESS6);
-	display oled(U8G2_R2);
-	
-  oled.begin();
+	// display oled(U8G2_R2);
+  energymeter::Csv csv;
+  myprintf("last_result: %d\r\n", csv.last_result);
+  if(!csv.create_new_file())
+  {
+    myprintf("create_new_file failed\r\n");
+    myprintf("last_result: %d\r\n", csv.last_result);
+    while(1);
+  }
+	if(!csv.append_measurement(1.5f, 2.5f, 3.75f))
+  {
+    myprintf("append_measurement\r\n");
+    myprintf("last_result: %d\r\n", csv.last_result);
+    while(1);
+  }
+  if(!csv.close_file())
+  {
+    myprintf("close_file\r\n");
+    myprintf("last_result: %d\r\n", csv.last_result);
+    while(1);
+  }
 
-	oled.setFont(u8g2_font_6x13_mf);
-	oled.drawStr(0, 15, "TEST");
+  myprintf("it worked!!!\r\n");
+  // oled.begin();
+
+	// oled.setFont(u8g2_font_6x13_mf);
+	// oled.drawStr(0, 15, "TEST");
 
     // osKernelInitialize();
     // sdTaskHandle = osThreadNew(sdTask, NULL, &sdTask_attributes);

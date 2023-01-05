@@ -32,3 +32,10 @@
 *.app
 
 build
+bsp/stm32l432kc/cubeMX/
+!bsp/stm32l432kc/cubeMX/energy_meter_stm32l432kc.ioc
+!bsp/stm32l432kc/cubeMX/CMakeLists.txt
+!bsp/stm32l432kc/cubeMX/Core/Inc/main.h
+!bsp/stm32l432kc/cubeMX/FATFS/Target/user_diskio.c
+!bsp/stm32l432kc/cubeMX/FATFS/Target/user_diskio_spi.h
+!bsp/stm32l432kc/cubeMX/FATFS/Target/user_diskio_spi.c
