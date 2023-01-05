@@ -42,19 +42,24 @@ void myprintf(const char *fmt, ...) {
 }
 
 int main() {
-    // HAL init
-    bsp::init();
-    bsp::delay(1000);
-
+  // HAL init
+  bsp::init();
+  bsp::delay(1000);
+  myprintf("BOARD BEGIN\n\r");
 	// initialize peripherals
 	// ina energy(INA219_I2C_ADDRESS6);
-	display oled(U8G2_R2);
-	
+	display oled;
+  myprintf("OLED CREATED\n\r");
+
   oled.begin();
-
+  // oled.init();
+  myprintf("OLED BEGIN\n\r");
+  bsp::delay(1000);
+  
 	oled.setFont(u8g2_font_6x13_mf);
-	oled.drawStr(0, 15, "TEST");
-
+	oled.drawStr(15, 15, "TEST");
+  oled.sendBuffer();
+  myprintf("OLED BUFFER SENT\n\r");
     // osKernelInitialize();
     // sdTaskHandle = osThreadNew(sdTask, NULL, &sdTask_attributes);
     // osKernelStart();
@@ -66,4 +71,14 @@ int main() {
 		// myprintf("Voltage: %.4f, Current: %.8f, Power: %.4f \n\r", energy.getBusVoltage_V(), energy.getCurrent_mA() * (0.01 / 32768), energy.getPower_mW());
 		bsp::delay(1000);
     }
+}
+
+void Error_Handler(void)
+{
+  __disable_irq();
+  myprintf("Error_Handler\n\r");
+  while(1)
+  {
+
+  }
 }

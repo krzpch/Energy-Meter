@@ -37,15 +37,10 @@ class U8G2_SH1106_128X64_NONAME_F_4W_SW_SPI : public U8G2 {
     class DISPLAY : public U8G2
     {
     private:
-        
-    protected:
-        virtual uint8_t u8x8_gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) = 0;
-        virtual uint8_t u8x8_byte_hw_interface(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) = 0;
 
-        static uint8_t u8x8_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
-        static uint8_t u8x8_byte_hw_interface_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
+
     public:
-        DISPLAY(const u8g2_cb_t *rotation);
+        DISPLAY(const u8g2_cb_t *rotation, uint8_t (*gpio_and_delay_func)(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr), uint8_t (*byte_hw_interface_func)(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr));
 
     };
 
@@ -60,8 +55,14 @@ class U8G2_SH1106_128X64_NONAME_F_4W_SW_SPI : public U8G2 {
         virtual uint8_t u8x8_gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) = 0;
         virtual uint8_t u8x8_byte_hw_interface(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) = 0;
 
-        static uint8_t u8x8_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
-        static uint8_t u8x8_byte_hw_interface_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
+    static uint8_t u8x8_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
+	{
+		return u8x8_gpio_and_delay_cb(u8x8, msg, arg_int, arg_ptr);
+	}
+    static uint8_t u8x8_byte_hw_interface_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
+	{
+		return u8x8_byte_hw_interface_cb(u8x8, msg, arg_int, arg_ptr);
+	}
 
     public:
         DISPLAY();

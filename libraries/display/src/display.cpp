@@ -17,19 +17,9 @@ namespace energymeter
 
 #ifdef USE_CPP
 
-	uint8_t DISPLAY::u8x8_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
+	DISPLAY::DISPLAY(const u8g2_cb_t *rotation, uint8_t (*gpio_and_delay_func)(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr), uint8_t (*byte_hw_interface_func)(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)) : U8G2()
 	{
-		return u8x8_gpio_and_delay_cb(u8x8, msg, arg_int, arg_ptr);
-	}
-
-    uint8_t DISPLAY::u8x8_byte_hw_interface_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
-	{
-		return u8x8_byte_hw_interface_cb(u8x8, msg, arg_int, arg_ptr);
-	}
-
-	DISPLAY::DISPLAY(const u8g2_cb_t *rotation) : U8G2()
-	{
-		u8g2_Setup_sh1106_128x64_noname_f(&u8g2, rotation, this->u8x8_byte_hw_interface_cb, this->u8x8_gpio_and_delay_cb);
+		u8g2_Setup_sh1106_128x64_noname_f(&u8g2, rotation, byte_hw_interface_func, gpio_and_delay_func);
     	// u8x8_SetPin_4Wire_SW_SPI(getU8x8(), clock, data, cs, dc, reset);
 	}
 
@@ -43,14 +33,14 @@ namespace energymeter
 		u8g2_ClearDisplay(&u8g2);
     }
 
-	uint8_t DISPLAY::u8x8_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
-	{
-		return u8x8_gpio_and_delay_cb(u8x8, msg, arg_int, arg_ptr);
-	}
-    uint8_t DISPLAY::u8x8_byte_hw_interface_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
-	{
-		return u8x8_byte_hw_interface_cb(u8x8, msg, arg_int, arg_ptr);
-	}
+	// uint8_t DISPLAY::u8x8_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
+	// {
+	// 	return u8x8_gpio_and_delay_cb(u8x8, msg, arg_int, arg_ptr);
+	// }
+    // uint8_t DISPLAY::u8x8_byte_hw_interface_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
+	// {
+	// 	return u8x8_byte_hw_interface_cb(u8x8, msg, arg_int, arg_ptr);
+	// }
 
 	void DISPLAY::setFont(const uint8_t *font)
 	{
@@ -59,7 +49,7 @@ namespace energymeter
 
 	void DISPLAY::init(void)
 	{
-		u8g2_Setup_sh1106_128x64_noname_f(&u8g2, U8G2_R2, this->u8x8_byte_hw_interface_cb, this->u8x8_gpio_and_delay_cb);
+		u8g2_Setup_sh1106_128x64_noname_f(&u8g2, U8G2_R2, [](u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr){disp->u8x8_byte_hw_interface(u8x8, msg, arg_int, arg_ptr);}, &DISPLAY::u8x8_gpio_and_delay_cb);
         u8g2_InitDisplay(&u8g2);
         u8g2_SetPowerSave(&u8g2, 0);
 	}
