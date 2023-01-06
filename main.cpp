@@ -40,44 +40,52 @@ int main() {
 	ina energy(INA219_I2C_ADDRESS6);
 	display oled;
 
-    bsp::delay(1000);
-    uint32_t temp_time = 0;
+  bsp::delay(1000);
+  uint32_t temp_time = 0;
 
 
-  // energymeter::Csv csv;
-  // myprintf("last_result: %d\r\n", csv.last_result);
-  // if(!csv.create_new_file())
-  // {
-    // myprintf("create_new_file failed\r\n");
-    // myprintf("last_result: %d\r\n", csv.last_result);
-    // while(1);
-  // }
-	// if(!csv.append_measurement(1.5f, 2.5f, 3.75f))
-  // {
-    // myprintf("append_measurement\r\n");
-    // myprintf("last_result: %d\r\n", csv.last_result);
-    // while(1);
-  // }
-  // if(!csv.close_file())
-  // {
-    // myprintf("close_file\r\n");
-    // myprintf("last_result: %d\r\n", csv.last_result);
-    // while(1);
-  // }
-// 
-  // myprintf("it worked!!!\r\n");
-	// oled.drawStr(0, 15, "TEST");
+  energymeter::Csv csv;
+  myprintf("last_result: %d\r\n", csv.last_result);
+  if(!csv.create_new_file())
+  {
+    myprintf("create_new_file failed\r\n");
+    myprintf("last_result: %d\r\n", csv.last_result);
+    while(1);
+  }
 
     // osKernelInitialize();
     // sdTaskHandle = osThreadNew(sdTask, NULL, &sdTask_attributes);
     // osKernelStart();
 
 	energy.reset();
-	energy.calibrate(0.30, 0.01);
-        
-    while (true) {
-		// myprintf("Voltage: %.4f, Current: %.8f, Power: %.4f \n\r", energy.getBusVoltage_V(), energy.getCurrent_mA() * (0.01 / 32768), energy.getPower_mW());
-        oled.updateMeasurments(energy.getBusVoltage_V(), energy.getCurrent_mA() * (0.01 / 32768), energy.getPower_mW(), ++temp_time);
-	    bsp::delay(1000);
-    }
+	energy.calibrate(0.03f, 0.1f);
+
+  // myprintf("TEST3");
+  // csv.append_measurement(1.0f, 2.0f, 3.0f);
+  // myprintf("TEST4");
+
+  while (temp_time < 100) {
+    myprintf("TEST1");
+    energy.read_measurements();
+    bsp::delay(100);
+    myprintf("TEST2");
+    oled.updateMeasurments(energy.get_voltage(), energy.get_current(), energy.get_power(), ++temp_time);
+    bsp::delay(100);
+    myprintf("TEST3");
+    csv.append_measurement(energy.get_voltage(), energy.get_current(), energy.get_power());
+    bsp::delay(1000);
+    myprintf("TEST4");
+  }
+
+  if(!csv.close_file())
+  {
+    myprintf("close_file\r\n");
+    myprintf("last_result: %d\r\n", csv.last_result);
+    while(1);
+  }
+
+  while(true)
+  {
+
+  }
 }

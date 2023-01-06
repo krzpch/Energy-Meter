@@ -20,7 +20,7 @@
 
 #define TX_TIMEOUT		100
 
-extern "C" SPI_HandleTypeDef hspi1;
+extern "C" SPI_HandleTypeDef hspi3;
 
 static uint8_t gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
@@ -55,7 +55,7 @@ static uint8_t byte_hw_interface(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, voi
     switch(msg) {
     case U8X8_MSG_BYTE_SEND:
         //Insert codes to transmit data
-        if(HAL_SPI_Transmit(&hspi1, (uint8_t*) arg_ptr, arg_int, TX_TIMEOUT) != HAL_OK) return 0;
+        if(HAL_SPI_Transmit(&hspi3, (uint8_t*) arg_ptr, arg_int, TX_TIMEOUT) != HAL_OK) return 0;
         break;
     case U8X8_MSG_BYTE_INIT:
         //Insert codes to begin SPI transmission
@@ -125,9 +125,9 @@ void display::updateMeasurments(float voltage, float current, float power, uint3
     drawStr(0, 15, buffer);
     sprintf(buffer, "Voltage: %.3f V", voltage);
     drawStr(0, 30, buffer);
-    sprintf(buffer, "Current: %.3f mA", current);
+    sprintf(buffer, "Current: %.3f A", current);
     drawStr(0, 45, buffer);
-    sprintf(buffer, "Power:   %.3f mW", power);
+    sprintf(buffer, "Power:   %.3f W", power);
     drawStr(0, 60, buffer);
     sendBuffer();
 }
