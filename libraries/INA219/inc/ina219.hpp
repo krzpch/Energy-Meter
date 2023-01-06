@@ -120,6 +120,14 @@ namespace energymeter
         void configBusADC(BADC_Resolution_Average_t resavg);
         void configShuntADC(SADC_Resolution_Average_t resavg);
         void configOperatingMode(Operating_Mode_t mode);
+
+        /**
+         * @brief Function for calibrating the sensor
+         * 
+         * @param max_expected_current max value of expected current current in A
+         * @return true if callibration was succesfull, false otherwise
+         * @note max_expected_current 0.3 is minimum known good value
+         */
         bool calibrate(float max_expected_current);
 
     protected:

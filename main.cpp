@@ -71,7 +71,11 @@ int main() {
   // osKernelStart();
 
   energy.reset();
-  energy.calibrate(0.01);
+  if (!energy.calibrate(10.0f))
+  {
+    myprintf("CALIBRATION ERROR!");
+    while(1);
+  }
       
   while (true) {
     myprintf("Voltage: %.4f, Current: %.8f, Power: %.4f \n\r", energy.getBusVoltage_V(), energy.getCurrent_mA(), energy.getPower_mW());
