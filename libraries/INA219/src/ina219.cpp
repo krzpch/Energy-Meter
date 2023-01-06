@@ -36,88 +36,74 @@ namespace energymeter
 
     float INA219::getCurrent_mA()
     {
-        return (float) readInaReg(INA219_REG_CURRENT);
+        return (float) (readInaReg(INA219_REG_CURRENT) / currentDivider_mA);
     }
 
     float INA219::getPower_mW()
     {
-        return (float) readInaReg(INA219_REG_POWER) * 20;
+        return (float) (readInaReg(INA219_REG_POWER) * powerMultiplier_mW);
     }
 
-    void INA219::configBusVolRange(Bus_Volt_Range_t value)
+    void INA219::configBusVolRange(Bus_Volt_Range_t range)
     {
-        uint16_t conf;
-        conf = readInaReg(INA219_REG_CONFIG);
-        conf &= ~((uint16_t) 1 << 13);
-        conf |= (uint16_t) value << 13;
-        writeInaReg(INA219_REG_CONFIG, conf);
+        uint16_t reg;
+        reg = readInaReg(INA219_REG_CONFIG);
+        reg &= ~INA219_CONFIG_BRNG_MASK;
+        reg |= range;
+        writeInaReg(INA219_REG_CONFIG, reg);
     }
 
     void INA219::configPGA(PGA_Range_t range)
     {
-        uint16_t conf;
-        conf = readInaReg(INA219_REG_CONFIG);
-        conf &= ~((uint16_t) 0x03 << 11);
-        conf |= (uint16_t) range << 11;
-        writeInaReg(INA219_REG_CONFIG, conf);
+        uint16_t reg;
+        reg = readInaReg(INA219_REG_CONFIG);
+        reg &= ~INA219_CONFIG_PG_MASK;
+        reg |= range;
+        writeInaReg(INA219_REG_CONFIG, reg);
     }
 
-    void INA219::configBusADC(ADC_Resolution_t res, ADC_Average_t avg)
+    void INA219::configBusADC(BADC_Resolution_Average_t resavg)
     {
-        uint16_t conf;
-        uint16_t value = 0;
-        if(res < ADC_Res_12bit && avg > ADC_Ave_1)
-        return;
-        if(res < ADC_Res_12bit)
-        {
-            value = res;
-        }
-        else
-        {
-            value = 0x08 | avg;
-        }
-        conf = readInaReg(INA219_REG_CONFIG);
-        conf &= ~((uint16_t) 0x0f << 7);
-        conf |= (uint16_t) value << 7;
-        writeInaReg(INA219_REG_CONFIG, conf);
+        uint16_t reg;
+        reg = readInaReg(INA219_REG_CONFIG);
+        reg &= ~INA219_CONFIG_BADC_MASK;
+        reg |= resavg;
+        writeInaReg(INA219_REG_CONFIG, reg);
     }
 
-    void INA219::configShuntADC(ADC_Resolution_t res, ADC_Average_t avg)
+    void INA219::configShuntADC(SADC_Resolution_Average_t resavg)
     {
-        uint16_t conf;
-        uint16_t value = 0;
-        if(res < ADC_Res_12bit && avg > ADC_Ave_1)
-        return;
-        if(res < ADC_Res_12bit)
-        {
-            value = res;
-        }
-        else
-        {
-            value = 0x08 | avg;
-        }
-        conf = readInaReg(INA219_REG_CONFIG);
-        conf &= ~((uint16_t) 0x0f << 3);
-        conf |= (uint16_t) value << 3;
-        writeInaReg(INA219_REG_CONFIG, conf);
+        uint16_t reg;
+        reg = readInaReg(INA219_REG_CONFIG);
+        reg &= ~INA219_CONFIG_SADC_MASK;
+        reg |= resavg;
+        writeInaReg(INA219_REG_CONFIG, reg);
     }
 
     void INA219::configOperatingMode(Operating_Mode_t mode)
     {
-        uint16_t conf;
-        conf = readInaReg(INA219_REG_CONFIG);
-        conf &= ~((uint16_t) 0x07);
-        conf |= (uint16_t) mode;
-        writeInaReg(INA219_REG_CONFIG, conf);
+        uint16_t reg;
+        reg = readInaReg(INA219_REG_CONFIG);
+        reg &= ~INA219_CONFIG_MODE_MASK;
+        reg |= mode;
+        writeInaReg(INA219_REG_CONFIG, reg);
     }
 
-    void INA219::calibrate(float max_current, float shunt_resistance)
-    {
-        uint16_t cal;
+    void INA219::calibrate(float max_expected_current)
+    {       
+        float MinimumLSB = max_expected_current/32767;
+        float MaximumLSB = max_expected_current/4096;
+        
+        float CurrentLSB = (MinimumLSB+MaximumLSB)/8;
+        
+        calValue = (uint16_t)(0.04096 / (CurrentLSB * INA219_SHUNT_RESISTANCE));
 
-        cal = (uint16_t) (0.04096/(shunt_resistance * (max_current / 32768)));
-
-        writeInaReg(INA219_REG_CALIBRATION, cal);
+        writeInaReg(INA219_REG_CALIBRATION, calValue);
+        
+        float PowerLSB = 20 * CurrentLSB;
+        
+        currentDivider_mA = 0.001 / CurrentLSB; 
+        powerMultiplier_mW = PowerLSB / 0.001;
     }
 
     uint16_t INA219::readInaReg(uint8_t reg)

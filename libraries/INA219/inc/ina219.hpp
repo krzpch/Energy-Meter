@@ -15,6 +15,8 @@
 
 #include <stdint.h>
 
+#define INA219_SHUNT_RESISTANCE     (0.01) // shunt resistance in ohms
+
 #define INA219_I2C_ADDRESS1         (0x40) // I2C ADDRESS 1
 #define INA219_I2C_ADDRESS2         (0x41) // I2C ADDRESS 2
 #define INA219_I2C_ADDRESS3         (0x42) // I2C ADDRESS 3
@@ -41,52 +43,71 @@
 
 #define INA219_CONFIG_RESET         (0x8000) // Config reset register
 
+#define INA219_CONFIG_BRNG_MASK     (0x2000) // Bus Voltage Range Mask
+#define INA219_CONFIG_PG_MASK       (0x1800) // Bus Voltage Range Mask
+#define INA219_CONFIG_BADC_MASK     (0x0780) // Bus Voltage Range Mask
+#define INA219_CONFIG_SADC_MASK     (0x0078) // Bus Voltage Range Mask
+#define INA219_CONFIG_MODE_MASK     (0x0007) // Bus Voltage Range Mask
+
+typedef enum {
+    Bus_Volt_Range_16V = 0x0000,     // 16V FSR
+    Bus_Volt_Range_32V = 0x2000      // 32V FSR
+} Bus_Volt_Range_t;
+
+typedef enum {
+    PGA_Range_40mV = 0x0000,         // GAIN: 1, Range ±40 mV
+    PGA_Range_80mV = 0x0800,         // GAIN: /2, Range ±80 mV
+    PGA_Range_160mV = 0x1000,        // GAIN: /4, Range ±160 mV
+    PGA_Range_320mV = 0x1800         // GAIN: /8, Range ±320 mV
+} PGA_Range_t;
+
+typedef enum {
+    BADC_Res_9bit_Ave_1 = 0x0000,
+    BADC_Res_10bit_Ave_1 = 0x0080,
+    BADC_Res_11bit_Ave_1 = 0x0100,
+    BADC_Res_12bit_Ave_1 = 0x0180,
+    BADC_Res_12bit_Ave_2 = 0x0480,
+    BADC_Res_12bit_Ave_4 = 0x0500,
+    BADC_Res_12bit_Ave_8 = 0x0580,
+    BADC_Res_12bit_Ave_16 = 0x0600,
+    BADC_Res_12bit_Ave_32 = 0x0680,
+    BADC_Res_12bit_Ave_64 = 0x0700,
+    BADC_Res_12bit_Ave_128 = 0x0780
+} BADC_Resolution_Average_t;
+
+typedef enum {
+    SADC_Res_9bit_Ave_1 = 0x0000,
+    SADC_Res_10bit_Ave_1 = 0x0008,
+    SADC_Res_11bit_Ave_1 = 0x0010,
+    SADC_Res_12bit_Ave_1 = 0x0018,
+    SADC_Res_12bit_Ave_2 = 0x0048,
+    SADC_Res_12bit_Ave_4 = 0x0050,
+    SADC_Res_12bit_Ave_8 = 0x0058,
+    SADC_Res_12bit_Ave_16 = 0x0060,
+    SADC_Res_12bit_Ave_32 = 0x0068,
+    SADC_Res_12bit_Ave_64 = 0x0070,
+    SADC_Res_12bit_Ave_128 = 0x0078
+} SADC_Resolution_Average_t;
+
+typedef enum {
+    PowerDown,              // Power-down
+    ShuntVoltTrig,          // Shunt voltage, triggered
+    BusVoltTrig,            // Bus voltage, triggered
+    ShutAndBbusVoltTrig,    // Shunt and bus, triggered
+    AdcOff,                 // ADC off (disabled)
+    ShuntVoltCont,          // Shunt voltage, continuous
+    BusVoltCont,            // Bus voltage, continuous
+    ShutAndBusVoltCont      // Shunt and bus, continuous
+} Operating_Mode_t;
+
 namespace energymeter
 {
     class INA219
     {
-    public:
-        typedef enum {
-            Bus_Volt_Range_16V,     // 16V FSR
-            Bus_Volt_Range_32V      // 32V FSR
-        } Bus_Volt_Range_t;
-
-        typedef enum {
-            PGA_Range_40mV,         // GAIN: 1, Range ±40 mV
-            PGA_Range_80mV,         // GAIN: /2, Range ±80 mV
-            PGA_Range_160mV,        // GAIN: /4, Range ±160 mV
-            PGA_Range_320mV         // GAIN: /8, Range ±320 mV
-        } PGA_Range_t;
-
-        typedef enum {
-            ADC_Res_9bit,
-            ADC_Res_10bit,
-            ADC_Res_11bit,
-            ADC_Res_12bit,
-        } ADC_Resolution_t;
-
-        typedef enum {
-            ADC_Ave_1,
-            ADC_Ave_2,
-            ADC_Ave_4,
-            ADC_Ave_8,
-            ADC_Ave_16,
-            ADC_Ave_32,
-            ADC_Ave_64,
-            ADC_Ave_128
-        } ADC_Average_t;
-
-        typedef enum {
-            PowerDown,              // Power-down
-            ShuntVoltTrig,          // Shunt voltage, triggered
-            BusVoltTrig,            // Bus voltage, triggered
-            ShutAndBbusVoltTrig,    // Shunt and bus, triggered
-            AdcOff,                 // ADC off (disabled)
-            ShuntVoltCont,          // Shunt voltage, continuous
-            BusVoltCont,            // Bus voltage, continuous
-            ShutAndBusVoltCont      // Shunt and bus, continuous
-        } Operating_Mode_t;
-
+    private:
+        uint16_t calValue;
+        float currentDivider_mA;
+        float powerMultiplier_mW;
     public:
         INA219(uint8_t i2caddr);
         void reset();
@@ -96,10 +117,10 @@ namespace energymeter
         float getPower_mW();
         void configBusVolRange(Bus_Volt_Range_t value);
         void configPGA(PGA_Range_t range);
-        void configBusADC(ADC_Resolution_t res, ADC_Average_t avg);
-        void configShuntADC(ADC_Resolution_t res, ADC_Average_t avg);
+        void configBusADC(BADC_Resolution_Average_t resavg);
+        void configShuntADC(SADC_Resolution_Average_t resavg);
         void configOperatingMode(Operating_Mode_t mode);
-        void calibrate(float max_current, float shunt_resistance);
+        void calibrate(float max_expected_current);
 
     protected:
         uint16_t i2c_address;

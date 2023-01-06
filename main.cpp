@@ -12,9 +12,9 @@
 #include "main.h"
 #include "cmsis_os.h"
 
-// #include "meter_thread.hpp"
+#include "meter_thread.hpp"
 // #include "display_thread.hpp"
-#include "csv_thread.hpp"
+// #include "csv_thread.hpp"
 
 extern "C" UART_HandleTypeDef huart2;
 
@@ -32,49 +32,49 @@ void myprintf(const char *fmt, ...) {
 }
 
 int main() {
-    // HAL init
-    bsp::init();
-    bsp::delay(1000);
+  // HAL init
+  bsp::init();
+  bsp::delay(1000);
 
 	// initialize peripherals
-	// ina energy(INA219_I2C_ADDRESS6);
+	ina energy(INA219_I2C_ADDRESS6);
 	// display oled(U8G2_R2);
-  energymeter::Csv csv;
-  myprintf("last_result: %d\r\n", csv.last_result);
-  if(!csv.create_new_file())
-  {
-    myprintf("create_new_file failed\r\n");
-    myprintf("last_result: %d\r\n", csv.last_result);
-    while(1);
-  }
-	if(!csv.append_measurement(1.5f, 2.5f, 3.75f))
-  {
-    myprintf("append_measurement\r\n");
-    myprintf("last_result: %d\r\n", csv.last_result);
-    while(1);
-  }
-  if(!csv.close_file())
-  {
-    myprintf("close_file\r\n");
-    myprintf("last_result: %d\r\n", csv.last_result);
-    while(1);
-  }
+  // energymeter::Csv csv;
+  // myprintf("last_result: %d\r\n", csv.last_result);
+  // if(!csv.create_new_file())
+  // {
+  //   myprintf("create_new_file failed\r\n");
+  //   myprintf("last_result: %d\r\n", csv.last_result);
+  //   while(1);
+  // }
+	// if(!csv.append_measurement(1.5f, 2.5f, 3.75f))
+  // {
+  //   myprintf("append_measurement\r\n");
+  //   myprintf("last_result: %d\r\n", csv.last_result);
+  //   while(1);
+  // }
+  // if(!csv.close_file())
+  // {
+  //   myprintf("close_file\r\n");
+  //   myprintf("last_result: %d\r\n", csv.last_result);
+  //   while(1);
+  // }
 
-  myprintf("it worked!!!\r\n");
+  // myprintf("it worked!!!\r\n");
   // oled.begin();
 
 	// oled.setFont(u8g2_font_6x13_mf);
 	// oled.drawStr(0, 15, "TEST");
 
-    // osKernelInitialize();
-    // sdTaskHandle = osThreadNew(sdTask, NULL, &sdTask_attributes);
-    // osKernelStart();
+  // osKernelInitialize();
+  // sdTaskHandle = osThreadNew(sdTask, NULL, &sdTask_attributes);
+  // osKernelStart();
 
-	// energy.reset();
-	// energy.calibrate(0.01, 0.01);
-        
-    while (true) {
-		// myprintf("Voltage: %.4f, Current: %.8f, Power: %.4f \n\r", energy.getBusVoltage_V(), energy.getCurrent_mA() * (0.01 / 32768), energy.getPower_mW());
-		bsp::delay(1000);
-    }
+  energy.reset();
+  energy.calibrate(0.01);
+      
+  while (true) {
+    myprintf("Voltage: %.4f, Current: %.8f, Power: %.4f \n\r", energy.getBusVoltage_V(), energy.getCurrent_mA(), energy.getPower_mW());
+    bsp::delay(1000);
+  }
 }
