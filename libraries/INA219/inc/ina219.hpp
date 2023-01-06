@@ -120,7 +120,7 @@ namespace energymeter
         void configBusADC(BADC_Resolution_Average_t resavg);
         void configShuntADC(SADC_Resolution_Average_t resavg);
         void configOperatingMode(Operating_Mode_t mode);
-        void calibrate(float max_expected_current);
+        bool calibrate(float max_expected_current);
 
     protected:
         uint16_t i2c_address;

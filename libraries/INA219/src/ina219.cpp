@@ -89,14 +89,25 @@ namespace energymeter
         writeInaReg(INA219_REG_CONFIG, reg);
     }
 
-    void INA219::calibrate(float max_expected_current)
+    bool INA219::calibrate(float max_expected_current)
     {       
         float MinimumLSB = max_expected_current/32767;
         float MaximumLSB = max_expected_current/4096;
         
-        float CurrentLSB = (MinimumLSB+MaximumLSB)/8;
+        float CurrentLSB = 0.0;
+        float calValueF;
         
-        calValue = (uint16_t)(0.04096 / (CurrentLSB * INA219_SHUNT_RESISTANCE));
+        do {
+            CurrentLSB += MinimumLSB;
+            calValueF = (0.04096 / (CurrentLSB * INA219_SHUNT_RESISTANCE));
+        } while ((CurrentLSB < MaximumLSB) && (calValueF > 65536));
+
+        if(calValueF >= 65536)
+        {
+            return false;
+        }
+
+        calValue = (uint16_t)calValueF;
 
         writeInaReg(INA219_REG_CALIBRATION, calValue);
         
@@ -104,6 +115,8 @@ namespace energymeter
         
         currentDivider_mA = 0.001 / CurrentLSB; 
         powerMultiplier_mW = PowerLSB / 0.001;
+
+        return true;
     }
 
     uint16_t INA219::readInaReg(uint8_t reg)
