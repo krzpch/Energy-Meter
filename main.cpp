@@ -58,7 +58,7 @@ int main() {
     // osKernelStart();
 
 	energy.reset();
-	energy.calibrate(0.03f, 0.1f);
+	energy.calibrate(1.0f);
 
   // myprintf("TEST3");
   // csv.append_measurement(1.0f, 2.0f, 3.0f);
