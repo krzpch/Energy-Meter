@@ -39,3 +39,5 @@ bsp/stm32l432kc/cubeMX/
 !bsp/stm32l432kc/cubeMX/FATFS/Target/user_diskio.c
 !bsp/stm32l432kc/cubeMX/FATFS/Target/user_diskio_spi.h
 !bsp/stm32l432kc/cubeMX/FATFS/Target/user_diskio_spi.c
+
+.vscode/.cortex-debug.registers.state.json
