@@ -47,5 +47,6 @@
         "typeinfo": "cpp",
         "u8g2.h": "c",
         "u8x8.h": "c"
-    }
+    },
+    "cortex-debug.armToolchainPath.linux": "/usr/bin/"
 }
