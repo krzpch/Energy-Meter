@@ -27,4 +27,7 @@ public:
     void updateMeasurments(float voltage, float current, float power, uint32_t seconds);
 };
 
+void display_thread(void *argument);
+
+
 #endif // DISPLAY_THREAD_H

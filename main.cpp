@@ -18,8 +18,6 @@
 
 extern "C" UART_HandleTypeDef huart2;
 
-#define DEBUG(_msg) (HAL_UART_Transmit(&huart2, (uint8_t*) _msg, strlen(_msg), 100))
-
 void myprintf(const char *fmt, ...) {
     static char buffer[256];
     va_list args;
@@ -31,58 +29,53 @@ void myprintf(const char *fmt, ...) {
     HAL_UART_Transmit(&huart2, (uint8_t*)buffer, len, -1);
 }
 
+osMessageQueueId_t message_queue_display;
+osMessageQueueId_t message_queue_sd_card;
+
+osThreadId_t meter_id; 
+osThreadId_t display_id; 
+osThreadId_t csv_id; 
+
+const osThreadAttr_t thread1_attr1 = {
+  .name = "meter",
+  .stack_size = 256,
+  .priority = osPriorityHigh5,
+};
+
+const osThreadAttr_t thread1_attr2 = {
+  .name = "display",
+  .stack_size = 256,
+  .priority = osPriorityNormal7,
+};
+
+const osThreadAttr_t thread1_attr3 = {
+  .name = "csv",
+  .stack_size = 1024,
+  .priority = osPriorityNormal5,
+};
+
 int main() {
-    // HAL init
-    bsp::init();
-    bsp::delay(1000);
-
-	// initialize peripherals
-	ina energy(INA219_I2C_ADDRESS6);
-	display oled;
-
+  // HAL init
+  bsp::init();
   bsp::delay(1000);
-  uint32_t temp_time = 0;
 
-
-  energymeter::Csv csv;
-  myprintf("last_result: %d\r\n", csv.last_result);
-  if(!csv.create_new_file())
+  if (osKernelInitialize() != osOK)
   {
-    myprintf("create_new_file failed\r\n");
-    myprintf("last_result: %d\r\n", csv.last_result);
     while(1);
   }
 
-    // osKernelInitialize();
-    // sdTaskHandle = osThreadNew(sdTask, NULL, &sdTask_attributes);
-    // osKernelStart();
-
-	energy.reset();
-	energy.calibrate(1.0f);
-
-  // myprintf("TEST3");
-  // csv.append_measurement(1.0f, 2.0f, 3.0f);
-  // myprintf("TEST4");
-
-  while (temp_time < 100) {
-    myprintf("TEST1");
-    energy.read_measurements();
-    bsp::delay(100);
-    myprintf("TEST2");
-    oled.updateMeasurments(energy.get_voltage(), energy.get_current(), energy.get_power(), ++temp_time);
-    bsp::delay(100);
-    myprintf("TEST3");
-    csv.append_measurement(energy.get_voltage(), energy.get_current(), energy.get_power());
-    bsp::delay(1000);
-    myprintf("TEST4");
-  }
-
-  if(!csv.close_file())
-  {
-    myprintf("close_file\r\n");
-    myprintf("last_result: %d\r\n", csv.last_result);
+  message_queue_display = osMessageQueueNew(32, sizeof(energy_data_t), NULL);
+  message_queue_sd_card = osMessageQueueNew(32, sizeof(energy_data_t), NULL);
+  if (message_queue_display == NULL || message_queue_sd_card == NULL) {
+    myprintf("queue creation failed\r\n");
     while(1);
   }
+
+  meter_id = osThreadNew(meter_thread, NULL, &thread1_attr1);
+  display_id = osThreadNew(display_thread, NULL, &thread1_attr2);
+  csv_id = osThreadNew(csv_thread, NULL, &thread1_attr3);
+
+  osKernelStart();
 
   while(true)
   {

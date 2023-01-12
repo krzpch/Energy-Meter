@@ -20,6 +20,14 @@
 
 extern "C" I2C_HandleTypeDef hi2c1;
 
+typedef struct
+{
+	float voltage;
+	float current;
+	float power;
+  uint32_t timestamp;
+} energy_data_t;
+
 class ina : public energymeter::INA219
 {
 private:
@@ -50,38 +58,6 @@ protected:
 	float calculatePower(float voltage, float current);
 };
 
-ina::ina(uint8_t _i2caddr) : INA219(_i2caddr)
-{
-	
-}
-
-ina::~ina()
-{
-}
-
-float ina::calculatePower(float voltage, float current)
-{
-	return voltage*current;
-}
-
-void ina::read_measurements(void)
-{
-	last_voltage = getBusVoltage_V();
-	last_current = (getShuntVoltage_mV()/0.01f)/1000.0f;
-	last_power = calculatePower(last_voltage, last_current);
-}
-
-float ina::get_voltage(void)
-{
-	return last_voltage;
-}
-float ina::get_current(void)
-{
-	return last_current;
-}
-float ina::get_power(void)
-{
-	return last_power;
-}
+void meter_thread(void *argument);
 
 #endif

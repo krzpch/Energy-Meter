@@ -15,4 +15,6 @@
 
 #include "csv.hpp"
 
+void csv_thread(void *argument);
+
 #endif // CSV_THREAD_H

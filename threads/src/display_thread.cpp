@@ -11,16 +11,21 @@
  */
 
 #include "display_thread.hpp"
+#include "meter_thread.hpp"
 
 #include <stdio.h>
 
 #include "bsp.hpp"
 #include "main.h"
 #include "spi.h"
+#include "cmsis_os.h"
+#include "FreeRTOS.h"
 
 #define TX_TIMEOUT		100
 
 extern "C" SPI_HandleTypeDef hspi3;
+
+extern osMessageQueueId_t message_queue_display;
 
 static uint8_t gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
@@ -80,8 +85,6 @@ static uint8_t byte_hw_interface(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, voi
     return 1;
 }
 
-
-
 display::display() : DISPLAY(U8G2_R2, gpio_and_delay, byte_hw_interface)
 {
     begin();
@@ -130,4 +133,29 @@ void display::updateMeasurments(float voltage, float current, float power, uint3
     sprintf(buffer, "Power:   %.3f W", power);
     drawStr(0, 60, buffer);
     sendBuffer();
+}
+
+// --------------------------------------------------------------------------------
+void display_thread(void *argument)
+{
+    osStatus_t status;
+    energy_data_t msg = {0};
+    display oled;
+
+    bsp::delay(100);
+
+    while(1)
+    {
+        status = osMessageQueueGet(message_queue_display, &msg, NULL, 100U);   // wait for message
+        if (status == osOK) 
+        {
+            osKernelLock();
+            oled.updateMeasurments(msg.voltage, msg.current, msg.power, msg.timestamp);
+            osKernelUnlock();
+        }
+        osDelay(1000);
+
+
+        __NOP();
+    }
 }
