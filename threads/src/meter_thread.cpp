@@ -19,6 +19,8 @@
 extern osMessageQueueId_t message_queue_display;
 extern osMessageQueueId_t message_queue_sd_card;
 
+extern bool save_measurements;
+
 ina::ina(uint8_t _i2caddr) : INA219(_i2caddr)
 {
 }
@@ -75,7 +77,12 @@ void meter_thread(void *argument)
         msg.power = energy.get_power();
         msg.timestamp = 0;
         osMessageQueuePut(message_queue_display, &msg, 0U, 0U);
-        osMessageQueuePut(message_queue_sd_card, &msg, 0U, 0U);
+
+        if (save_measurements)
+        {
+            osMessageQueuePut(message_queue_sd_card, &msg, 0U, 0U);
+        }
+        
         osDelay(100);
     }
 }

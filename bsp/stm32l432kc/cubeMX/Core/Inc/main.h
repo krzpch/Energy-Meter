@@ -67,6 +67,9 @@ void Error_Handler(void);
 #define DISP_DC_GPIO_Port GPIOA
 #define SD_CS_Pin GPIO_PIN_0
 #define SD_CS_GPIO_Port GPIOB
+#define BUTTON_Pin GPIO_PIN_1
+#define BUTTON_GPIO_Port GPIOB
+#define BUTTON_EXTI_IRQn EXTI1_IRQn
 #define VCP_RX_Pin GPIO_PIN_15
 #define VCP_RX_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */

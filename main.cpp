@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdarg>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -17,6 +18,8 @@
 #include "csv_thread.hpp"
 
 extern "C" UART_HandleTypeDef huart2;
+
+bool save_measurements = false;
 
 void myprintf(const char *fmt, ...) {
     static char buffer[256];
@@ -57,11 +60,16 @@ const osThreadAttr_t thread1_attr3 = {
 int main() {
   // HAL init
   bsp::init();
+
   bsp::delay(1000);
 
   if (osKernelInitialize() != osOK)
   {
     while(1);
+  }
+  else
+  {
+    myprintf("Kernel initialized\r\n");
   }
 
   message_queue_display = osMessageQueueNew(32, sizeof(energy_data_t), NULL);
@@ -81,4 +89,13 @@ int main() {
   {
 
   }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if (GPIO_Pin == BUTTON_Pin)
+  {
+    save_measurements = !save_measurements;
+    myprintf("measurements are %s\r\n", save_measurements ? "being saved!" : "not being saved!");
+  }  
 }
