@@ -12,7 +12,7 @@
             "type": "cortex-debug",
             "servertype": "external",
             "runToEntryPoint": "true",
-            "gdbTarget": "192.168.0.171:3333"
+            "gdbTarget": "192.168.0.227:3333"
         }
     ]
 }

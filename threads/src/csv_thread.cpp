@@ -26,6 +26,14 @@ void csv_thread(void *argument)
     osStatus_t status;
     energy_data_t msg = {0};
     energymeter::Csv csv;
+
+    if(!csv.begin())
+    {
+        while(1)
+        {
+            osDelay(10000);
+        }
+    }
    
     if(!csv.create_new_file())
     {
@@ -41,7 +49,7 @@ void csv_thread(void *argument)
         if (status == osOK) 
         {
             osKernelLock();
-            csv.append_measurement(msg.voltage, msg.current, msg.power);
+            csv.append_measurement(1, msg.voltage, msg.current, msg.power);
             osKernelUnlock();
         }
         osDelay(100);
