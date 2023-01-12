@@ -23,17 +23,19 @@ namespace energymeter
     class Csv
     {
     private:
-        FATFS FatFs; 	//Fatfs handle
-        FIL file; 		//File handle
-        
+        FATFS *FatFs; 	        //Fatfs handle
+        FIL *file; 		        //File handle
+        FRESULT last_result;    //result from last Fatfs operation
         
     public:
-        FRESULT last_result; //result from last Fatfs operation
         Csv();
         ~Csv();
+        bool begin(void);
         bool create_new_file(void);
-        bool append_measurement(float voltage, float current, float power);
+        bool append_measurement(uint32_t time, float voltage, float current, float power);
         bool close_file(void);
+        bool end(void);
+        uint8_t get_last_error(void);
     
     };
 }
