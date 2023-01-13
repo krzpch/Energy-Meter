@@ -37,7 +37,8 @@ add_library(
   Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart.c
   Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart_ex.c
   Core/Src/system_stm32l4xx.c
-  Middlewares/Third_Party/FatFs/src/diskio.c
+  #Middlewares/Third_Party/FatFs/src/diskio.c
+  Core/Src/diskio.c
   Middlewares/Third_Party/FatFs/src/ff.c
   Middlewares/Third_Party/FatFs/src/ff_gen_drv.c
   Middlewares/Third_Party/FatFs/src/option/syscall.c

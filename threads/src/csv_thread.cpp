@@ -20,43 +20,76 @@
 #include "FreeRTOS.h"
 
 extern osMessageQueueId_t message_queue_sd_card;
+extern bool save_measurements;
+
+bool csv_error;
+
+typedef enum {
+    Csv_uninitialized,
+    Csv_idle,
+    Csv_create_file,
+    Csv_save_measurement,
+    Csv_close_file,
+    Csv_error
+} Csv_thread_state_t;
 
 void csv_thread(void *argument)
 {
-    osStatus_t status;
     energy_data_t msg = {0};
+    Csv_thread_state_t state = Csv_uninitialized;
     energymeter::Csv csv;
-
-    if(!csv.begin())
+    csv_error = false;
+    
+    while(true)
     {
-        while(1)
+        switch(state)
         {
-            osDelay(10000);
+        case Csv_uninitialized:
+            state = csv.begin() ? Csv_idle : Csv_error;
+            break;
+        case Csv_create_file:
+            state = csv.create_new_file() ? Csv_save_measurement : Csv_error;
+            break;
+        case Csv_save_measurement:
+            if(save_measurements)
+            {
+                if (osMessageQueueGet(message_queue_sd_card, &msg, NULL, 100U) == osOK) 
+                {
+                    osKernelLock();
+                    state = csv.append_measurement(1, msg.voltage, msg.current, msg.power) ? Csv_save_measurement : Csv_error;
+                    osKernelUnlock();
+                }
+                osDelay(100);
+            }
+            else
+            {
+                state = Csv_close_file;
+            }
+            break;   
+        case Csv_close_file:
+            state = csv.close_file() ? Csv_idle : Csv_error;
+            break;
+        case Csv_error:
+            csv_error = true;
+            csv.end();
+            osDelay(100);
+            if(csv.begin())
+            {
+                state = Csv_idle;
+                csv_error = false;
+            }
+            break;
+        case Csv_idle:
+        default:
+            if(save_measurements)
+            {
+                state = Csv_create_file;
+            }
+            else
+            {
+                osDelay(100);
+            }
+            break;
         }
-    }
-   
-    if(!csv.create_new_file())
-    {
-        while(1)
-        {
-            osDelay(10000);
-        }
-    }
-
-    while(1)
-    {
-        status = osMessageQueueGet(message_queue_sd_card, &msg, NULL, 100U);
-        if (status == osOK) 
-        {
-            osKernelLock();
-            csv.append_measurement(1, msg.voltage, msg.current, msg.power);
-            osKernelUnlock();
-        }
-        osDelay(100);
-    }
-
-    if(!csv.close_file())
-    {
-        while(1);
     }
 }
