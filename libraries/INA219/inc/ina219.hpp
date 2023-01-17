@@ -62,31 +62,31 @@ typedef enum {
 } PGA_Range_t;
 
 typedef enum {
-    BADC_Res_9bit_Ave_1 = 0x0000,
-    BADC_Res_10bit_Ave_1 = 0x0080,
-    BADC_Res_11bit_Ave_1 = 0x0100,
-    BADC_Res_12bit_Ave_1 = 0x0180,
-    BADC_Res_12bit_Ave_2 = 0x0480,
-    BADC_Res_12bit_Ave_4 = 0x0500,
-    BADC_Res_12bit_Ave_8 = 0x0580,
-    BADC_Res_12bit_Ave_16 = 0x0600,
-    BADC_Res_12bit_Ave_32 = 0x0680,
-    BADC_Res_12bit_Ave_64 = 0x0700,
-    BADC_Res_12bit_Ave_128 = 0x0780
+    BADC_Res_9bit_Ave_1 = 0x0000,    // 9 bit resolution, 1 average
+    BADC_Res_10bit_Ave_1 = 0x0080,   // 10 bit resolution, 1 average
+    BADC_Res_11bit_Ave_1 = 0x0100,   // 11 bit resolution, 1 average
+    BADC_Res_12bit_Ave_1 = 0x0180,   // 12 bit resolution, 1 average
+    BADC_Res_12bit_Ave_2 = 0x0480,   // 12 bit resolution, 2 averages
+    BADC_Res_12bit_Ave_4 = 0x0500,   // 12 bit resolution, 4 averages
+    BADC_Res_12bit_Ave_8 = 0x0580,   // 12 bit resolution, 8 averages
+    BADC_Res_12bit_Ave_16 = 0x0600,  // 12 bit resolution, 16 averages
+    BADC_Res_12bit_Ave_32 = 0x0680,  // 12 bit resolution, 32 averages
+    BADC_Res_12bit_Ave_64 = 0x0700,  // 12 bit resolution, 64 averages
+    BADC_Res_12bit_Ave_128 = 0x0780  // 12 bit resolution, 128 averages
 } BADC_Resolution_Average_t;
 
 typedef enum {
-    SADC_Res_9bit_Ave_1 = 0x0000,
-    SADC_Res_10bit_Ave_1 = 0x0008,
-    SADC_Res_11bit_Ave_1 = 0x0010,
-    SADC_Res_12bit_Ave_1 = 0x0018,
-    SADC_Res_12bit_Ave_2 = 0x0048,
-    SADC_Res_12bit_Ave_4 = 0x0050,
-    SADC_Res_12bit_Ave_8 = 0x0058,
-    SADC_Res_12bit_Ave_16 = 0x0060,
-    SADC_Res_12bit_Ave_32 = 0x0068,
-    SADC_Res_12bit_Ave_64 = 0x0070,
-    SADC_Res_12bit_Ave_128 = 0x0078
+    SADC_Res_9bit_Ave_1 = 0x0000,    // 9 bit resolution, 1 average
+    SADC_Res_10bit_Ave_1 = 0x0008,   // 10 bit resolution, 1 average
+    SADC_Res_11bit_Ave_1 = 0x0010,   // 11 bit resolution, 1 average
+    SADC_Res_12bit_Ave_1 = 0x0018,   // 12 bit resolution, 1 average
+    SADC_Res_12bit_Ave_2 = 0x0048,   // 12 bit resolution, 2 averages
+    SADC_Res_12bit_Ave_4 = 0x0050,   // 12 bit resolution, 4 averages
+    SADC_Res_12bit_Ave_8 = 0x0058,   // 12 bit resolution, 8 averages
+    SADC_Res_12bit_Ave_16 = 0x0060,  // 12 bit resolution, 16 averages
+    SADC_Res_12bit_Ave_32 = 0x0068,  // 12 bit resolution, 32 averages
+    SADC_Res_12bit_Ave_64 = 0x0070,  // 12 bit resolution, 64 averages
+    SADC_Res_12bit_Ave_128 = 0x0078  // 12 bit resolution, 128 averages
 } SADC_Resolution_Average_t;
 
 typedef enum {
@@ -105,36 +105,135 @@ namespace energymeter
     class INA219
     {
     private:
-        uint16_t calValue;
-        float currentDivider_mA;
-        float powerMultiplier_mW;
+        uint16_t calValue;          // Calibration value
+        float currentDivider_mA;    // Divider used in reading current
+        float powerMultiplier_mW;   // Multiplier used in reading power
     public:
+        /**
+         * @brief Construct a new INA219 object
+         * 
+         * @param[in] i2caddr I2C address of INA219 sensor
+         */
         INA219(uint8_t i2caddr);
-        void reset();
-        float getBusVoltage_V();
-        float getShuntVoltage_mV();
-        float getCurrent_mA();
-        float getPower_mW();
-        void configBusVolRange(Bus_Volt_Range_t value);
+
+        /**
+         * @brief Resets sensor to default settings
+         */
+        void reset(void);
+
+        /**
+         * @brief Get measured bus voltage
+         * 
+         * @return float Value of measured bus voltage in V
+         */
+        float getBusVoltage_V(void);
+
+        /**
+         * @brief Get measured shunt resistor voltage
+         * 
+         * @return float Value of measured shunt resistor voltage in mV
+         */
+        float getShuntVoltage_mV(void);
+
+        /**
+         * @brief Get measured current
+         * 
+         * @note Sensor must be first calibrated otherwise 0 is returned
+         * 
+         * @return float Value of measured current in mA
+         */
+        float getCurrent_mA(void);
+
+        /**
+         * @brief Get measured power
+         * 
+         * @note Sensor must be first calibrated otherwise 0 is returned
+         * 
+         * @return float Value of measured power in mW
+         */
+        float getPower_mW(void);
+
+        /**
+         * @brief Set range of bus voltage
+         * 
+         * @param[in] range selected voltage range
+         */
+        void configBusVolRange(Bus_Volt_Range_t range);
+
+        /**
+         * @brief Set range of programmable gain amplifier
+         * 
+         * @param[in] range selected voltage range
+         */
         void configPGA(PGA_Range_t range);
+
+        /**
+         * @brief Set bus ADC resolution and number of averages
+         * 
+         * @param[in] resavg selected resolution and number of averages
+         */
         void configBusADC(BADC_Resolution_Average_t resavg);
+
+        /**
+         * @brief Set shunt ADC resolution and number of averages
+         * 
+         * @param[in] resavg selected resolution and number of averages
+         */
         void configShuntADC(SADC_Resolution_Average_t resavg);
+
+        /**
+         * @brief Set sensor operating mode
+         * 
+         * @param[in] mode selected mode
+         */
         void configOperatingMode(Operating_Mode_t mode);
 
         /**
-         * @brief Function for calibrating the sensor
+         * @brief Calibrates the sensor
          * 
-         * @param max_expected_current max value of expected current current in A
-         * @return true if callibration was succesfull, false otherwise
          * @note max_expected_current 0.3 is minimum known good value
+         * 
+         * @param [in] max_expected_current maximum expected current to be measured in A
+         * @return true if calibration succeded
+         * @return false if max_expected_current has invalid value
          */
         bool calibrate(float max_expected_current);
 
     protected:
-        uint16_t i2c_address;
+        uint16_t i2c_address; // I2C address of INA219 sensor
+
+        /**
+         * @brief Pure Virtual Function used to write INA219 register using I2C (hardware dependent)
+         * 
+         * @param[in] reg register address
+         * @param[in] pBuf buffer with data
+         * @param[in] len length of data in bytes
+         */
         virtual void writeReg(uint8_t reg, uint8_t *pBuf, uint16_t len) = 0;
+
+        /**
+         * @brief Pure Virtual Function used to read INA219 register using I2C (hardware dependent)
+         * 
+         * @param[in] reg register address
+         * @param[out] pBuf buffer for output data
+         * @param[in] len length of data in bytes
+         */
         virtual void readReg(uint8_t reg, uint8_t *pBuf, uint16_t len) = 0; 
+
+        /**
+         * @brief Function used to get INA219 register
+         * 
+         * @param[in] reg register address
+         * @return uint16_t INA219 register value
+         */
         uint16_t readInaReg(uint8_t reg);
+
+        /**
+         * @brief Function uset to set INA219 register
+         * 
+         * @param[in] reg register address
+         * @param[in] value desired register value
+         */
         void writeInaReg(uint8_t reg, uint16_t value);   
     };
 }

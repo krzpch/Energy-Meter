@@ -19,27 +19,27 @@ namespace energymeter
         i2c_address = i2caddr;
     }
 
-    void INA219::reset()
+    void INA219::reset(void)
     {
         writeInaReg(INA219_REG_CONFIG, INA219_CONFIG_RESET);
     }
 
-    float INA219::getBusVoltage_V()
+    float INA219::getBusVoltage_V(void)
     {
         return (float) (readInaReg(INA219_REG_BUS_VOLTAGE) >> 3) * 0.004;
     }
 
-    float INA219::getShuntVoltage_mV()
+    float INA219::getShuntVoltage_mV(void)
     {
         return (float) readInaReg(INA219_REG_SHUNT_VOLTAGE) * 0.01;
     }
 
-    float INA219::getCurrent_mA()
+    float INA219::getCurrent_mA(void)
     {
         return (float) (readInaReg(INA219_REG_CURRENT) / currentDivider_mA);
     }
 
-    float INA219::getPower_mW()
+    float INA219::getPower_mW(void)
     {
         return (float) (readInaReg(INA219_REG_POWER) * powerMultiplier_mW);
     }
