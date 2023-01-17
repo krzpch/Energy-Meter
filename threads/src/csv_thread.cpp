@@ -52,12 +52,13 @@ void csv_thread(void *argument)
             break;
         case Csv_save_measurement:
             if(save_measurements)
-            {
-                if (osMessageQueueGet(message_queue_sd_card, &msg, NULL, 100U) == osOK) 
+            {   
+                if (osMessageQueueGetCount(message_queue_sd_card) > 0)
                 {
-                    osKernelLock();
-                    state = csv.append_measurement(1, msg.voltage, msg.current, msg.power) ? Csv_save_measurement : Csv_error;
-                    osKernelUnlock();
+                    if (osMessageQueueGet(message_queue_sd_card, &msg, NULL, 100U) == osOK) 
+                    {
+                        state = csv.append_measurement(msg.timestamp, msg.voltage, msg.current, msg.power) ? Csv_save_measurement : Csv_error;
+                    }
                 }
                 osDelay(100);
             }
