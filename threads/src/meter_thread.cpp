@@ -11,6 +11,7 @@
  */
 
 #include "meter_thread.hpp"
+#include "csv_thread.hpp"
 
 #include "bsp.hpp"
 #include "cmsis_os.h"
@@ -18,6 +19,9 @@
 
 extern osMessageQueueId_t message_queue_display;
 extern osMessageQueueId_t message_queue_sd_card;
+
+extern bool save_measurements;
+extern bool csv_error;
 
 ina::ina(uint8_t _i2caddr) : INA219(_i2caddr)
 {
@@ -52,13 +56,26 @@ float ina::get_power(void)
 	return last_power;
 }
 
+typedef enum {
+    meter_normal_mode,
+    meter_start_saving,
+    meter_saving_mode,
+} meter_thread_state_t;
+
+
+extern void myprintf(const char *fmt, ...);
+
 // --------------------------------------------------------------------------------
 void meter_thread(void *argument)
 {
-    osStatus_t status;
+    osStatus_t status = osOK;
     energy_data_t msg;
 
     ina energy(INA219_I2C_ADDRESS6);
+
+    meter_thread_state_t state = meter_normal_mode;
+
+    uint32_t meas_begin_timestamp = 0;
 
     energy.reset();
 	energy.calibrate(1.0f);
@@ -67,15 +84,44 @@ void meter_thread(void *argument)
 
     while(1)
     {
-        // osKernelLock();
         energy.read_measurements();
-        // osKernelUnlock();
         msg.voltage = energy.get_voltage();
         msg.current = energy.get_current();
         msg.power = energy.get_power();
-        msg.timestamp = 0;
-        osMessageQueuePut(message_queue_display, &msg, 0U, 0U);
-        osMessageQueuePut(message_queue_sd_card, &msg, 0U, 0U);
-        osDelay(100);
+
+        switch(state)
+        {
+        case meter_normal_mode:
+            msg.timestamp = 0;
+            osMessageQueuePut(message_queue_display, &msg, 0U, 0U);
+            if (save_measurements && !csv_error)
+            {
+                state = meter_start_saving;
+            }
+            break;
+        case meter_start_saving:
+            meas_begin_timestamp = osKernelGetTickCount();
+            state = meter_saving_mode;
+            
+        case meter_saving_mode:
+            msg.timestamp = osKernelGetTickCount() - meas_begin_timestamp;
+            if (save_measurements && !csv_error)
+            {
+                status = osMessageQueuePut(message_queue_display, &msg, 0U, 0U);
+                status = osMessageQueuePut(message_queue_sd_card, &msg, 0U, 0U);                
+            }
+            else
+            {
+                state = meter_normal_mode;
+            }
+
+
+            break;
+        default:
+            state = meter_start_saving;
+            break;
+        }
+        
+        osDelay(200);
     }
 }

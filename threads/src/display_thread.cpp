@@ -12,6 +12,7 @@
 
 #include "display_thread.hpp"
 #include "meter_thread.hpp"
+#include "csv_thread.hpp"
 
 #include <stdio.h>
 
@@ -26,7 +27,10 @@
 extern "C" SPI_HandleTypeDef hspi3;
 
 extern osMessageQueueId_t message_queue_display;
+extern bool csv_error;
+extern bool save_measurements;
 
+// functions for controlling gpios connected to display and delays for display 
 static uint8_t gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
     //STM32 supports HW SPI, Remove unused cases like U8X8_MSG_DELAY_XXX & U8X8_MSG_GPIO_XXX
@@ -55,6 +59,7 @@ static uint8_t gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *
     return 1;
 }
 
+// functions for controlling SPI interface conneted to display
 static uint8_t byte_hw_interface(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
     switch(msg) {
@@ -84,6 +89,9 @@ static uint8_t byte_hw_interface(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, voi
     }
     return 1;
 }
+
+// --------------------------------------------------------------------------------
+// Class methods definitions
 
 display::display() : DISPLAY(U8G2_R2, gpio_and_delay, byte_hw_interface)
 {
@@ -123,8 +131,16 @@ void display::updateMeasurments(float voltage, float current, float power, uint3
     uint8_t mm = calculateMinutesFromSeconds(seconds);
     char buffer [50];
 
-    sprintf(buffer, "Time:    %02u:%02u:%02u", hh, mm, seconds%60);
     clearBuffer();
+    if (csv_error)
+    {
+        sprintf(buffer, "ERROR: Check SD card");
+    }
+    else
+    {
+        sprintf(buffer, "Time:    %02u:%02u:%02u", hh, mm, seconds%60);
+    }
+    
     drawStr(0, 15, buffer);
     sprintf(buffer, "Voltage: %.3f V", voltage);
     drawStr(0, 30, buffer);
@@ -136,26 +152,69 @@ void display::updateMeasurments(float voltage, float current, float power, uint3
 }
 
 // --------------------------------------------------------------------------------
+// Helper functions
+
+static void append(energy_data_t* dest, energy_data_t* source)
+{
+    dest->voltage += source->voltage;
+    dest->current += source->current;
+    dest->power += source->power;
+}
+
+static void average(energy_data_t* data, uint8_t count)
+{
+    data->voltage = data->voltage / count;
+    data->current = data->current / count;
+    data->power = data->power / count;
+}
+
+static void clear(energy_data_t* data)
+{
+    data->voltage = 0.0f;
+    data->current = 0.0f;
+    data->power = 0.0f;
+}
+
+// --------------------------------------------------------------------------------
+// main display thread function
+
 void display_thread(void *argument)
 {
     osStatus_t status;
-    energy_data_t msg = {0};
+    energy_data_t msg;
+    energy_data_t msg_mean;
+    uint8_t count;
+    uint32_t time = 0;
     display oled;
 
     bsp::delay(100);
 
     while(1)
     {
-        status = osMessageQueueGet(message_queue_display, &msg, NULL, 100U);   // wait for message
-        if (status == osOK) 
+        count = 0;
+        clear(&msg_mean);
+        while (osMessageQueueGetCount(message_queue_display) > 0)
         {
-            osKernelLock();
-            oled.updateMeasurments(msg.voltage, msg.current, msg.power, msg.timestamp);
-            osKernelUnlock();
+            status = osMessageQueueGet(message_queue_display, &msg, NULL, 0);
+            if (status == osOK) 
+            {
+                count++;
+                append(&msg_mean, &msg);
+            }
+        }
+        if (count > 0)
+        {
+            average(&msg_mean, count);
+            if (save_measurements && !csv_error)
+            {
+                time++;
+            }
+            else
+            {
+                time = 0;
+            }
+            oled.updateMeasurments(msg_mean.voltage, msg_mean.current, msg_mean.power, time);
         }
         osDelay(1000);
-
-
-        __NOP();
     }
 }

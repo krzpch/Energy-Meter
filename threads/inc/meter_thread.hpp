@@ -25,7 +25,7 @@ typedef struct
 	float voltage;
 	float current;
 	float power;
-  uint32_t timestamp;
+  	uint32_t timestamp;
 } energy_data_t;
 
 class ina : public energymeter::INA219

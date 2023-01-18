@@ -68,7 +68,7 @@ namespace energymeter
 
     bool Csv::append_measurement(uint32_t time, float voltage, float current, float power)
     {
-        BYTE writeBuf[30];
+        BYTE writeBuf[50];
         UINT bytesToWrite;
         UINT bytesWritten;
 
