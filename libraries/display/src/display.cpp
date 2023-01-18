@@ -17,6 +17,5 @@ namespace energymeter
 	DISPLAY::DISPLAY(const u8g2_cb_t *rotation, uint8_t (*gpio_and_delay_func)(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr), uint8_t (*byte_hw_interface_func)(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)) : U8G2()
 	{
 		u8g2_Setup_sh1106_128x64_noname_f(&u8g2, rotation, byte_hw_interface_func, gpio_and_delay_func);
-    	// u8x8_SetPin_4Wire_SW_SPI(getU8x8(), clock, data, cs, dc, reset);
 	}
 } // namespace energymeter

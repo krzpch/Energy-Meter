@@ -17,9 +17,10 @@
 #include "display_thread.hpp"
 #include "csv_thread.hpp"
 
-extern "C" UART_HandleTypeDef huart2;
+// --------------------------------------------------------------------------------
+// printf
 
-bool save_measurements = false;
+extern "C" UART_HandleTypeDef huart2;
 
 void myprintf(const char *fmt, ...) {
 	static char buffer[256];
@@ -31,6 +32,11 @@ void myprintf(const char *fmt, ...) {
 	int len = strlen(buffer);
 	HAL_UART_Transmit(&huart2, (uint8_t*)buffer, len, -1);
 }
+
+// --------------------------------------------------------------------------------
+// threads and queue handlers/attributes, global variables
+
+bool save_measurements = false;
 
 osMessageQueueId_t message_queue_display;
 osMessageQueueId_t message_queue_sd_card;
@@ -81,6 +87,9 @@ const osMessageQueueAttr_t csv_queue_attr =
 	.mq_size = 32*(sizeof(energy_data_t)),
 };
 
+// --------------------------------------------------------------------------------
+// program main function
+
 int main() {
   	// HAL init
 	bsp::init();
@@ -115,6 +124,7 @@ int main() {
 	}
 }
 
+// Callback for handling button
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if (GPIO_Pin == BUTTON_Pin)

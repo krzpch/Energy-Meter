@@ -30,6 +30,7 @@ extern osMessageQueueId_t message_queue_display;
 extern bool csv_error;
 extern bool save_measurements;
 
+// functions for controlling gpios connected to display and delays for display 
 static uint8_t gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
     //STM32 supports HW SPI, Remove unused cases like U8X8_MSG_DELAY_XXX & U8X8_MSG_GPIO_XXX
@@ -58,6 +59,7 @@ static uint8_t gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *
     return 1;
 }
 
+// functions for controlling SPI interface conneted to display
 static uint8_t byte_hw_interface(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
     switch(msg) {
@@ -87,6 +89,9 @@ static uint8_t byte_hw_interface(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, voi
     }
     return 1;
 }
+
+// --------------------------------------------------------------------------------
+// Class methods definitions
 
 display::display() : DISPLAY(U8G2_R2, gpio_and_delay, byte_hw_interface)
 {
@@ -136,7 +141,6 @@ void display::updateMeasurments(float voltage, float current, float power, uint3
         sprintf(buffer, "Time:    %02u:%02u:%02u", hh, mm, seconds%60);
     }
     
-    
     drawStr(0, 15, buffer);
     sprintf(buffer, "Voltage: %.3f V", voltage);
     drawStr(0, 30, buffer);
@@ -148,6 +152,7 @@ void display::updateMeasurments(float voltage, float current, float power, uint3
 }
 
 // --------------------------------------------------------------------------------
+// Helper functions
 
 static void append(energy_data_t* dest, energy_data_t* source)
 {
@@ -169,6 +174,9 @@ static void clear(energy_data_t* data)
     data->current = 0.0f;
     data->power = 0.0f;
 }
+
+// --------------------------------------------------------------------------------
+// main display thread function
 
 void display_thread(void *argument)
 {
